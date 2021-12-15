@@ -1,0 +1,52 @@
+Тестовое задание прослойка для PHP-HttpBin
+
+
+Постановка и требования
+
+Есть методы некий абстрактный микросервис (далее МС), который отвечает по HTTP. Назовем его SomeHttpService или сокращенно — SHS.
+МС выставил свой swagger https://httpbin.org/#/HTTP_Methods:
+https://httpbin.org/get
+https://httpbin.org/post
+https://httpbin.org/put
+https://httpbin.org/delete
+
+Требуется с использованием чистого PHP ^7.4, менеджера пакетов composer и PSR-7-клиента написать сервис-прослойку, который сможет:
+Выполнять любые HTTP-запросы (GET, PUT, POST, DELETE, PATCH) к сервису SHS, в т.ч. и в т.ч формате multipart/form-data
+Параметры конфигурации сервиса:
+строка —endpoint API
+массив — HTTP-заголовки, например
+    Authorization: Bearer <token>
+    Content-type: application/json
+    и тд
+
+
+Критерии хорошего решения
+
+1. Есть сервис локатор, где этот сервис инстанцируется и конфигурируется
+2. В решении использованы паттерны проектирования Singleton, Строитель, Стратегия, Фасад, DTO
+3. DTO-могут быть расширяемы без внесения правок в код сервиса
+4. Размер одного PHP-класса не должен превышать 500 строк кода включая комментарии
+4. Код должен соответствовать PSR-12
+6. Ошибки кода и неоптимальности должны быть исправлены посредством PHP Code Sniffer (добавить в composer)
+https://www.jetbrains.com/help/phpstorm/using-php-code-sniffer.html#installing-configuring-code-sniffer
+7. Сборка и работа сервиса не зависит от окружения, где этот сервис развернут
+8. Независимо от ответа сервера (статусы 200 - 500) сервис обрабатывает исключения и возвращает \\Psr\\Http\\Message\\ResponseInterface
+9. При обработке исключений сервис учитывает какое сообщение об ошибке/или успехе вернул МС
+10. В коде приложения вызов сервиса представляет собой обращение к фасаду, например
+
+/**
+ * Инстанс сервиса, в котором уже сидит PSR-7 клиент с нужным ENDPOINT и заголовками
+ *
+ * @var shsService SHS
+ */
+$shsService = Locator::getSHSSevice();
+
+/**
+ * @var \\Psr\\Http\\Message\\ResponseInterface
+ */
+$getResult = $shsService::get();
+
+/**
+ * @var \\Psr\\Http\\Message\\ResponseInterface
+ */
+$postResult = $shsService::post(); # и тд
